@@ -32,7 +32,6 @@ def notebook_to_html(text, record=None):
     exporter.template_file = 'basic'
 
     body,resources = exporter.from_notebook_node(nb)
-
     return body,resources
 
 
@@ -56,14 +55,18 @@ class Notebook(object):
         # markdown.  For instance this affects relative links.
         if self.__html is None or \
            self.__cached_for_ctx != get_ctx():
-            self.__html, self.__meta = notebook_to_html(
+            self.__html, __resources = notebook_to_html(
                 self.source, self.__record())
             self.__cached_for_ctx = get_ctx()
+            if 'inlining' in __resources:
+                css_strs = __resources['inlining'].get('css')
+                if css_strs:
+                    self.__meta = '\n'.join(css_strs)
 
     @property
     def meta(self):
         self.__render()
-        return self.__meta
+        return Markup(self.__meta)
 
     @property
     def html(self):
